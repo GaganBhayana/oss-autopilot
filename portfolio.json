@@ -1,0 +1,16 @@
+{
+  "owner": "GaganBhayana",
+  "author": { "name": "Gagan Bhayana", "email": "gagan2oct1998@gmail.com" },
+  "timezone": "Asia/Kolkata",
+  "maxOpenAutopilotPRsPerRepo": 2,
+  "repos": {
+    "forge-core": { "phase": "active", "cadence": "daily", "start": "2026-11-23" },
+    "proof": { "phase": "active", "cadence": "daily", "start": "2026-11-23", "launchTarget": "2027-01-29" },
+    "bumpfix": { "phase": "foundation", "cadence": "rotation", "start": "2026-11-23", "activeFrom": "2027-02-01", "launchTarget": "2027-04-12" },
+    "flakehound": { "phase": "foundation", "cadence": "rotation", "start": "2026-11-23", "activeFrom": "2027-04-12", "launchTarget": "2027-05-24" },
+    "tooltrust": { "phase": "foundation", "cadence": "rotation", "start": "2026-11-23", "activeFrom": "2027-05-24", "launchTarget": "2027-07-19" },
+    "harnessci": { "phase": "foundation", "cadence": "rotation", "start": "2026-11-23", "activeFrom": "2027-07-19", "launchTarget": "2027-09-20" }
+  },
+  "rotation": ["flakehound", "bumpfix", "tooltrust", "harnessci"],
+  "notes": "When a repo's activeFrom date arrives, the Sunday session sets its phase to active and cadence to daily, and moves the previous active product (after launch) to rotation for maintenance."
+}
