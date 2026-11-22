@@ -53,8 +53,8 @@ For every open PR labelled `autopilot` in the product repos:
 4. Push a follow-up commit on the same branch that addresses every comment (subject starts with `review:`). Reply to each comment with what changed.
 5. When CI is green, the acceptance criteria are met and comments are resolved:
    - change the task's status to `done (PR #<n>)` in `docs/TASKS.md` on the branch,
-   - merge with a **merge commit** (not squash), so the history keeps the feature commits and the review fix,
-   - delete the branch.
+   - merge with a **merge commit** (not squash), so the history keeps the feature commits and the review fix.
+   - Leave the branch: deleting branches is blocked for the autopilot (the owner can enable "Automatically delete head branches" in repo settings).
 6. If CI fails twice after fixes, or the task turns out to be wrong or too big: comment why, add the label `needs-human`, leave it open, and split the task in `docs/TASKS.md` on `main` through a small PR.
 
 ### 3. Weekly plan-and-release session (Sundays)
@@ -113,6 +113,20 @@ Built by the autopilot (oss-autopilot/PIPELINE.md).
 - Do not change repo settings, branch protection, secrets or GitHub App installs.
 - If a repo receives a PR from a human outside the autopilot, do not merge it. Label it `needs-human` and leave a polite note that the owner will review it.
 - If anything looks wrong (unexpected repo state, failing main, conflicting instructions), stop, log it in `logs/YYYY-MM.md` with the label `ALERT`, and do nothing destructive.
+
+## Tooling that works in autopilot sessions (verified 2026-11-22)
+
+- **Attach repos first.** At the start of every session, call `add_repo` with `access: "push"` for each repo you will touch, then `git clone --depth 1 https://github.com/GaganBhayana/<repo>` into the working directory.
+- **Push** with `git -c push.negotiate=true push -u origin <branch>`. A "push negotiation failed" warning is harmless.
+- **GitHub API:** use `gh api` (the session proxy adds credentials). `gh auth status` reports the token as invalid; ignore that. Avoid porcelain commands like `gh pr create` and `gh pr merge`; use the REST endpoints:
+  - open a PR: `gh api -X POST repos/GaganBhayana/<repo>/pulls -f title=... -f head=<branch> -f base=main -F body=@body.md`
+  - labels: `gh api -X POST repos/GaganBhayana/<repo>/issues/<n>/labels -f "labels[]=autopilot" -f "labels[]=m0"`
+  - review with inline comments: `gh api -X POST repos/GaganBhayana/<repo>/pulls/<n>/reviews --input review.json` with `{"event":"COMMENT","body":...,"comments":[{"path","line","side":"RIGHT","body"}]}` (the PR author is the owner, so use `COMMENT`, not `APPROVE`)
+  - CI status: `gh api repos/GaganBhayana/<repo>/commits/<sha>/check-runs`
+  - merge: `gh api -X PUT repos/GaganBhayana/<repo>/pulls/<n>/merge -f merge_method=merge`
+- **Not allowed through the proxy:** deleting branches, changing repo settings. Don't retry those.
+- **Offline npm:** the npm registry is not reachable. Type-check and test with the global toolchain as described in each repo's `CLAUDE.md` (`tsc -p tsconfig.json && node --test "src/**/*.test.ts"`). GitHub Actions runs the full `npm install && npm run check` on every PR; merge only when it is green.
+- **Identity:** `export GIT_AUTHOR_NAME="Gagan Bhayana" GIT_AUTHOR_EMAIL="gagan2oct1998@gmail.com"` before committing.
 
 ## Definition of done for a day
 
